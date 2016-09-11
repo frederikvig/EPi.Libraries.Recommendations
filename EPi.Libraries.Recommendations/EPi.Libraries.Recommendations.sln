@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPi.Libraries.Recommendations", "EPi.Libraries.Recommendations.csproj", "{F7C76DF8-3F33-473D-9CB1-AF1C3E33A364}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPi.Libraries.Recommendations.Batches", "..\EPi.Libraries.Recommendations.Batches\EPi.Libraries.Recommendations.Batches.csproj", "{2C81E1B5-33CA-4CE7-87F8-D698554562E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPi.Libraries.Recommendations.BusinessRules", "..\EPi.Libraries.Recommendations.BusinessRules\EPi.Libraries.Recommendations.BusinessRules.csproj", "{8FC875E5-D553-4E32-8BFE-FF32F0D569A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPi.Libraries.Recommendations.CatalogExportJob", "..\EPi.Libraries.Recommendations.CatalogExportJob\EPi.Libraries.Recommendations.CatalogExportJob.csproj", "{36536B44-DAEB-4DCD-AC0D-EA8902B5DAF8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPi.Libraries.Recommendations.Tests", "..\EPi.Libraries.Recommendations.Tests\EPi.Libraries.Recommendations.Tests.csproj", "{4E46CB27-59E7-4263-A6C0-295FA06A1C13}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPi.Libraries.Recommendations.UsageExportJob", "..\EPi.Libraries.Recommendations.UsageExportJob\EPi.Libraries.Recommendations.UsageExportJob.csproj", "{CAC946F9-C4F1-4B11-B3E7-CA5628EB9533}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F7C76DF8-3F33-473D-9CB1-AF1C3E33A364}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7C76DF8-3F33-473D-9CB1-AF1C3E33A364}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7C76DF8-3F33-473D-9CB1-AF1C3E33A364}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7C76DF8-3F33-473D-9CB1-AF1C3E33A364}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C81E1B5-33CA-4CE7-87F8-D698554562E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C81E1B5-33CA-4CE7-87F8-D698554562E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C81E1B5-33CA-4CE7-87F8-D698554562E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C81E1B5-33CA-4CE7-87F8-D698554562E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FC875E5-D553-4E32-8BFE-FF32F0D569A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FC875E5-D553-4E32-8BFE-FF32F0D569A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FC875E5-D553-4E32-8BFE-FF32F0D569A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FC875E5-D553-4E32-8BFE-FF32F0D569A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36536B44-DAEB-4DCD-AC0D-EA8902B5DAF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36536B44-DAEB-4DCD-AC0D-EA8902B5DAF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36536B44-DAEB-4DCD-AC0D-EA8902B5DAF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36536B44-DAEB-4DCD-AC0D-EA8902B5DAF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E46CB27-59E7-4263-A6C0-295FA06A1C13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E46CB27-59E7-4263-A6C0-295FA06A1C13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E46CB27-59E7-4263-A6C0-295FA06A1C13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E46CB27-59E7-4263-A6C0-295FA06A1C13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAC946F9-C4F1-4B11-B3E7-CA5628EB9533}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAC946F9-C4F1-4B11-B3E7-CA5628EB9533}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAC946F9-C4F1-4B11-B3E7-CA5628EB9533}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAC946F9-C4F1-4B11-B3E7-CA5628EB9533}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
