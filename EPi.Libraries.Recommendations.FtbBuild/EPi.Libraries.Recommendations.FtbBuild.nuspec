@@ -1,0 +1,21 @@
+﻿<?xml version="1.0"?>
+
+<package>
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <projectUrl>https://github.com/jstemerdink/EPi.Libraries.Recommendations/tree/master</projectUrl>
+    <iconUrl>http://jstemerdink.net/images/js-nuget.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright © Jeroen Stemerdink 2016</copyright>
+    <tags>commerce recommendations azure cognitive</tags>
+    <dependencies>
+      <dependency id="EPi.Libraries.Recommendations" version="[0.0.1, 2.0)" />
+    </dependencies>
+  </metadata>
+</package>

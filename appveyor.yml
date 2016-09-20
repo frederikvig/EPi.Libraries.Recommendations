@@ -23,11 +23,20 @@ after_build:
 - cmd: appveyor PushArtifact "EPi.Libraries.Recommendations.CatalogExportJob.%GitVersion_NuGetVersion%.nupkg"
 - cmd: nuget pack EPi.Libraries.Recommendations.UsageExportJob\EPi.Libraries.Recommendations.UsageExportJob.csproj -version "%GitVersion_NuGetVersion%" -prop "target=%CONFIGURATION%"
 - cmd: appveyor PushArtifact "EPi.Libraries.Recommendations.UsageExportJob.%GitVersion_NuGetVersion%.nupkg"
+- cmd: nuget pack EPi.Libraries.Recommendations.Build\EPi.Libraries.Recommendations.Build.csproj -version "%GitVersion_NuGetVersion%" -prop "target=%CONFIGURATION%"
+- cmd: appveyor PushArtifact "EPi.Libraries.Recommendations.Build.%GitVersion_NuGetVersion%.nupkg"
+- cmd: nuget pack EPi.Libraries.Recommendations.FtbBuild\EPi.Libraries.Recommendations.FtbBuild.csproj -version "%GitVersion_NuGetVersion%" -prop "target=%CONFIGURATION%"
+- cmd: appveyor PushArtifact "EPi.Libraries.Recommendations.FtbBuild.%GitVersion_NuGetVersion%.nupkg"
 - 7z a EPi.Libraries.Recommendations.%GitVersion_NuGetVersion%.zip %APPVEYOR_BUILD_FOLDER%\EPi.Libraries.Recommendations\bin\Release\EPi.Libraries.Recommendations.dll
 - cmd: appveyor PushArtifact "EPi.Libraries.Recommendations.%GitVersion_NuGetVersion%.zip"
 - 7z a EPi.Libraries.Recommendations.CatalogExportJob.%GitVersion_NuGetVersion%.zip %APPVEYOR_BUILD_FOLDER%\EPi.Libraries.Recommendations.CatalogExportJob\bin\Release\EPi.Libraries.Recommendations.CatalogExportJob.dll
 - cmd: appveyor PushArtifact "EPi.Libraries.Recommendations.CatalogExportJob.%GitVersion_NuGetVersion%.zip"
 - 7z a EPi.Libraries.Recommendations.UsageExportJob.%GitVersion_NuGetVersion%.zip %APPVEYOR_BUILD_FOLDER%\EPi.Libraries.Recommendations.UsageExportJob\bin\Release\EPi.Libraries.Recommendations.UsageExportJob.dll
+- cmd: appveyor PushArtifact "EPi.Libraries.Recommendations.UsageExportJob.%GitVersion_NuGetVersion%.zip"
+- 7z a EPi.Libraries.Recommendations.Build.%GitVersion_NuGetVersion%.zip %APPVEYOR_BUILD_FOLDER%\EPi.Libraries.Recommendations.Build\bin\Release\EPi.Libraries.Recommendations.Build.dll
+- cmd: appveyor PushArtifact "EPi.Libraries.Recommendations.Build.%GitVersion_NuGetVersion%.zip"
+- 7z a EPi.Libraries.Recommendations.FtbBuild.%GitVersion_NuGetVersion%.zip %APPVEYOR_BUILD_FOLDER%\EPi.Libraries.Recommendations.FtbBuild\bin\Release\EPi.Libraries.Recommendations.FtbBuild.dll
+- cmd: appveyor PushArtifact "EPi.Libraries.Recommendations.FtbBuild.%GitVersion_NuGetVersion%.zip"
 before_package:
 - ps: >-
     Write-Host -NoNewline "Installing NuGet 3.3.0..."

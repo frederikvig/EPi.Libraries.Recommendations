@@ -155,3 +155,5 @@ EPi.Libraries.DeviceDetection.Wurfl/App_Data/wurfl-latest.zip
 EPi.Libraries.DeviceDetection.Wurfl/App_Readme/
 EPi.Libraries.DeviceDetection.Wurfl/COPYING.txt
 EPi.Libraries.DeviceDetection.Wurfl/Introspector/
+EPi.Libraries.Recommendations/.vs/config/applicationhost.config
+EPi.Libraries.Recommendations.GhostDoc.xml
