@@ -8,7 +8,7 @@ By Jeroen Stemerdink
 [![Platform](https://img.shields.io/badge/platform-.NET 4.5.2-blue.svg?style=flat)](https://msdn.microsoft.com/en-us/library/w0x726c2%28v=vs.110%29.aspx)
 [![Platform](https://img.shields.io/badge/EPiServer-%209.12.0-orange.svg?style=flat)](http://world.episerver.com/cms/)  
 [![Issue Count](https://codeclimate.com/github/jstemerdink/EPi.Libraries.Recommendations/badges/issue_count.svg)](https://codeclimate.com/github/jstemerdink/EPi.Libraries.Recommendations)
-[![Stories in Backlog](https://badge.waffle.io/EPi.Libraries.Recommendations.svg?label=enhancement&title=Backlog)](http://waffle.io/jstemerdink/EPi.Libraries.Recommendations)
+[![Stories in Backlog](https://badge.waffle.io/jstemerdink/EPi.Libraries.Recommendations.svg?label=enhancement&title=Backlog)](http://waffle.io/jstemerdink/EPi.Libraries.Recommendations)
 
 ## About
 Export usage stats to the Microsoft Cognitive Services Recommendations API with EPiServer Commerce.

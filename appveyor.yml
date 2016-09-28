@@ -5,7 +5,7 @@ environment:
   github_token: 'secure: TaDEavUfTj6EgwcO7y5njQVS5Z9bBU/fVFuSApo5XEO6FSBT5UzJQmyJjbhIFDZb'
   myget_token: 'secure: 9Z+KYPk2hI7hg9kYLv/N13fvoqcYCP96isNUkRrKu0v87cw85H62oe/DCwpqvBXF'
 install:
-- choco install gitversion.portable -pre -y
+- choco install gitversion.portable -y
 #- choco install resharper-clt.portable -y
 - cmd: nuget sources add -Name EPiServerFeed -Source http://nuget.episerver.com/feed/packages.svc/
 before_build:
@@ -45,7 +45,10 @@ deploy:
 - provider: GitHub
   auth_token:
     secure: TaDEavUfTj6EgwcO7y5njQVS5Z9bBU/fVFuSApo5XEO6FSBT5UzJQmyJjbhIFDZb
-  artifact: /.*\.zip/
+  draft: false
+  prerelease: false
+  #artifact: /.*\.zip/
+  artifact: /.*\.*/
   on:
     branch: master              # release from master branch only
     appveyor_repo_tag: true     # deploy on tag push only

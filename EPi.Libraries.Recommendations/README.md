@@ -8,10 +8,17 @@ By Jeroen Stemerdink
 [![Platform](https://img.shields.io/badge/platform-.NET 4.5.2-blue.svg?style=flat)](https://msdn.microsoft.com/en-us/library/w0x726c2%28v=vs.110%29.aspx)
 [![Platform](https://img.shields.io/badge/EPiServer-%209.12.0-orange.svg?style=flat)](http://world.episerver.com/cms/)  
 [![Issue Count](https://codeclimate.com/github/jstemerdink/EPi.Libraries.Recommendations/badges/issue_count.svg)](https://codeclimate.com/github/jstemerdink/EPi.Libraries.Recommendations)
-[![Stories in Backlog](https://badge.waffle.io/EPi.Libraries.Recommendations.svg?label=enhancement&title=Backlog)](http://waffle.io/jstemerdink/EPi.Libraries.Recommendations)
+[![Stories in Backlog](https://badge.waffle.io/jstemerdink/EPi.Libraries.Recommendations.svg?label=enhancement&title=Backlog)](http://waffle.io/jstemerdink/EPi.Libraries.Recommendations)
 
 ## About
 Use the Microsoft Cognitive Services Recommendations API with EPiServer Commerce
+
+## Parts
+[Core](README.md)   
+
+[Export catalog](../EPi.Libraries.Recommendations.CatalogExportJob/README.md)   
+
+[Export usage stats](../EPi.Libraries.Recommendations.UsageExportJob/README.md)   
 
 ## Setings
 Add an account key to your appsettings: ```<add key="recommendations:accountkey" value="YourKey" />```
@@ -100,14 +107,6 @@ Below you find an example for QuickSilver.
     }
 }
 ```
-
-## Parts
-
-[Core](README.md)
-
-[Export catalog](../EPi.Libraries.Recommendations.CatalogExportJob/README.md)
-
-[Export usage stats](../EPi.Libraries.Recommendations.UsageExportJob/README.md)
 
 
 > *Powered by ReSharper*
