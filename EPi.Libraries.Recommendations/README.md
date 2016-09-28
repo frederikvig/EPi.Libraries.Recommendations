@@ -108,6 +108,17 @@ Below you find an example for QuickSilver.
 }
 ```
 
+You can override some more methods if you need to, this is the full list:
+```csharp
+        List<CatalogItem> GetCatalogItems(DateTime since);
+        List<EntryContentBase> GetItemRecommendations(string itemIds);
+        List<EntryContentBase> GetItemRecommendations(string itemIds, int numberOfResults);
+        List<UsageItem> GetUsageItems(DateTime since);
+        List<EntryContentBase> GetUserRecommendations();
+        List<EntryContentBase> GetUserRecommendations(int numberOfResults);
+        void SendUsageEvent(int quantity, string code, decimal unitPrice, EventType eventType);
+        void SendUsageEvent(decimal quantity, string code, decimal unitPrice, EventType eventType);
+```
 
 > *Powered by ReSharper*
 
