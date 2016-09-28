@@ -21,6 +21,7 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Globalization;
     using System.Net.Http;
     using System.Text;
@@ -49,6 +50,11 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         private readonly ILogger log = LogManager.GetLogger();
 
         /// <summary>
+        /// The build identifier
+        /// </summary>
+        private long buildId;
+
+        /// <summary>
         /// The catalog display name
         /// </summary>
         private string catalogDisplayName;
@@ -74,11 +80,6 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         private string modelName;
 
         /// <summary>
-        /// The build identifier
-        /// </summary>
-        private long buildId;
-
-        /// <summary>
         /// Stop was signaled
         /// </summary>
         private bool stopSignaled;
@@ -87,6 +88,14 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         /// The usage display name
         /// </summary>
         private string usageDisplayName;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExportJob"/> class.
+        /// </summary>
+        public ExportJob()
+        {
+            this.IsStoppable = true;
+        }
 
         /// <summary>
         /// Gets the recommendation service.
@@ -113,18 +122,6 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         }
 
         /// <summary>
-        /// Gets the scheduled job repository.
-        /// </summary>
-        /// <value>The scheduled job repository.</value>
-        private static IScheduledJobRepository ScheduledJobRepository
-        {
-            get
-            {
-                return ServiceLocator.Current.GetInstance<IScheduledJobRepository>();
-            }
-        }
-
-        /// <summary>
         /// Gets the recommender.
         /// </summary>
         /// <value>The recommender.</value>
@@ -137,18 +134,21 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExportJob"/> class.
+        /// Gets the scheduled job repository.
         /// </summary>
-        public ExportJob()
+        /// <value>The scheduled job repository.</value>
+        private static IScheduledJobRepository ScheduledJobRepository
         {
-            this.IsStoppable = true;
+            get
+            {
+                return ServiceLocator.Current.GetInstance<IScheduledJobRepository>();
+            }
         }
 
         /// <summary>
         /// Called when a scheduled job executes
         /// </summary>
         /// <returns>A status message to be stored in the database log and visible from admin mode</returns>
-        /// <exception cref="HttpRequestException">Failed to set active build.</exception>
         public override string Execute()
         {
             this.OnStatusChanged(string.Format("Starting execution of {0}", this.GetType()));
@@ -156,37 +156,43 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
             this.InitSettings();
 
             string uploadUsageMessage;
-            string createRecommendationsMessage;
-            string createFtbMessage = string.Empty;
+            string buildMessage;
 
             if (!this.UploadUsage(out uploadUsageMessage))
             {
                 return uploadUsageMessage;
             }
 
+            bool useFtbBuild;
+            bool.TryParse(ConfigurationManager.AppSettings["recommendations:useftbbuild"], out useFtbBuild);
 
-            if (!this.CreateRecommendationsBuild(out createRecommendationsMessage))
+            if (useFtbBuild)
             {
-                return createRecommendationsMessage;
+                if (!this.CreateFtbBuild(out buildMessage))
+                {
+                    return string.Format(CultureInfo.InvariantCulture, "{0}\r\n{1}", uploadUsageMessage, buildMessage);
+                }
+            }
+            else
+            {
+                if (!this.CreateRecommendationsBuild(out buildMessage))
+                {
+                    return string.Format(CultureInfo.InvariantCulture, "{0}\r\n{1}", uploadUsageMessage, buildMessage);
+                }
             }
 
-            //this.CreateFtbBuild(out createFtbMessage);
-
-            Recommender.SetActiveBuild(this.modelId, this.buildId);
+            try
+            {
+                Recommender.SetActiveBuild(this.modelId, this.buildId);
+            }
+            catch (HttpRequestException httpRequestException)
+            {
+                buildMessage = httpRequestException.Message;
+            }
 
             this.catalogItems.Clear();
 
-            if (this.stopSignaled)
-            {
-                return "Stop of job was called";
-            }
-
-            return string.Format(
-                CultureInfo.InvariantCulture,
-                "{0}\r\n{1}\r\n{2}",
-                uploadUsageMessage,
-                createRecommendationsMessage,
-                createFtbMessage);
+            return this.stopSignaled ? "Stop of job was called" : string.Format(CultureInfo.InvariantCulture, "{0}\r\n{1}", uploadUsageMessage, buildMessage);
         }
 
         /// <summary>
@@ -206,7 +212,9 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         {
             // Trigger a FTB build.
             string operationLocationHeader;
-             this.log.Information("[Recommendations] Triggering FTB build for model '{0}'. \nThis will take a few minutes...", this.modelId);
+            this.log.Information(
+                "[Recommendations] Triggering FTB build for model '{0}'. \nThis will take a few minutes...",
+                this.modelId);
 
             this.buildId = Recommender.CreateFbtBuild(
                 this.modelId,
@@ -265,7 +273,9 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         {
             // Trigger a recommendation build.
             string operationLocationHeader;
-            this.log.Information("[Recommendations] Triggering recommendation build for model '{0}'. \nThis will take a few minutes...", this.modelId);
+            this.log.Information(
+                "[Recommendations] Triggering recommendation build for model '{0}'. \nThis will take a few minutes...",
+                this.modelId);
 
             string featureList = this.catalogItems.GetFeatureList();
             bool useFeaturesInModel = !string.IsNullOrWhiteSpace(featureList);
@@ -300,7 +310,9 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
 
             if (string.Compare(buildInfo.Status, "Succeeded", StringComparison.OrdinalIgnoreCase) != 0)
             {
-                this.log.Information("[Recommendations] Recommendation build {0} did not end successfully.", this.buildId);
+                this.log.Information(
+                    "[Recommendations] Recommendation build {0} did not end successfully.",
+                    this.buildId);
                 return false;
             }
 
@@ -353,10 +365,7 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
 
             if (usageItems.Count == 0)
             {
-                message = string.Format(
-                CultureInfo.InvariantCulture,
-                "[Recommendations] Imported {0} usage stats.",
-                0);
+                message = string.Format(CultureInfo.InvariantCulture, "[Recommendations] Imported {0} usage stats.", 0);
 
                 return true;
             }
@@ -365,10 +374,7 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
 
             if (string.IsNullOrWhiteSpace(usageContent))
             {
-                message = string.Format(
-                CultureInfo.InvariantCulture,
-                "[Recommendations] Imported {0} usage stats.",
-                0);
+                message = string.Format(CultureInfo.InvariantCulture, "[Recommendations] Imported {0} usage stats.", 0);
 
                 return true;
             }
@@ -377,11 +383,14 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
 
             try
             {
-               usageImportStats = Recommender.UploadUsage(this.modelId, usageContent, this.usageDisplayName);
+                usageImportStats = Recommender.UploadUsage(this.modelId, usageContent, this.usageDisplayName);
             }
             catch (HttpRequestException httpRequestException)
             {
-                message = string.Format(CultureInfo.InvariantCulture, "[Recommendations] Error sending usage stats: {0}", httpRequestException.Message);
+                message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[Recommendations] Error sending usage stats: {0}",
+                    httpRequestException.Message);
 
                 this.log.Error("[Recommendations] Error sending usage stats", httpRequestException);
                 this.log.Information("[Recommendations] Usage stats content trying to send:\\r\n{0}", usageContent);
@@ -389,14 +398,20 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
             }
             catch (ArgumentNullException argumentNullException)
             {
-                message = string.Format(CultureInfo.InvariantCulture, "[Recommendations] Error sending usage stats: {0}", argumentNullException.Message);
+                message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[Recommendations] Error sending usage stats: {0}",
+                    argumentNullException.Message);
 
                 this.log.Error("[Recommendations] Error sending usage stats", argumentNullException);
                 return false;
             }
             catch (EncoderFallbackException encoderFallbackException)
             {
-                message = string.Format(CultureInfo.InvariantCulture, "[Recommendations] Error sending usage stats: {0}", encoderFallbackException.Message);
+                message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[Recommendations] Error sending usage stats: {0}",
+                    encoderFallbackException.Message);
                 this.log.Error("[Recommendations] Error sending usage stats", encoderFallbackException);
                 return false;
             }

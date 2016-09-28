@@ -19,4 +19,8 @@
       <dependency id="EPiServer.Commerce.Core" version="[9.19.1, 10.0)" />
     </dependencies>
   </metadata>
+  <files>
+    <file src="readme.txt" target="" />
+    <file src="web.config.install.xdt" target="content" />
+  </files>
 </package>

@@ -11,7 +11,10 @@ By Jeroen Stemerdink
 [![Stories in Backlog](https://badge.waffle.io/EPi.Libraries.Recommendations.svg?label=enhancement&title=Backlog)](http://waffle.io/jstemerdink/EPi.Libraries.Recommendations)
 
 ## About
-Export usage stats to the Microsoft Cognitive Services Recommendations API with EPiServer Commerce
+Export usage stats to the Microsoft Cognitive Services Recommendations API with EPiServer Commerce.
+Starts a recommendations build, or a 'Frequently Bought Together' build.
+
+If you want to use the 'Frequently Bought Together build' change the key in the appSettings ```<add key="recommendations:useftbbuild" value="true" />```
 
 ## Parts
 

@@ -1,0 +1,12 @@
+﻿<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
+  <appSettings xdt:Transform="InsertIfMissing" />
+
+  <appSettings>
+    <add key="recommendations:useftbbuild" value="false" xdt:Transform="InsertIfMissing" xdt:Locator="Match(key)" />
+    <add key="recommendations:baseuri" value="https://westus.api.cognitive.microsoft.com/recommendations/v4.0" xdt:Transform="InsertIfMissing" xdt:Locator="Match(key)" />
+    <add key="recommendations:accountkey" value="" xdt:Transform="InsertIfMissing" xdt:Locator="Match(key)" />
+    <add key="recommendations:modelname" value="EPiServerCommerce" xdt:Transform="InsertIfMissing" xdt:Locator="Match(key)" />
+    <add key="recommendations:catalogdisplayname" value="EPiServer Commerce catalog" xdt:Transform="InsertIfMissing" xdt:Locator="Match(key)" />
+    <add key="recommendations:usagedisplayname" value="EPiServer Commerce catalog usages" xdt:Transform="InsertIfMissing" xdt:Locator="Match(key)" />
+  </appSettings>
+</configuration>
