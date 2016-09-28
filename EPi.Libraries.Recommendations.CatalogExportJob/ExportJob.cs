@@ -169,10 +169,13 @@ namespace EPi.Libraries.Recommendations.CatalogExportJob
         /// </summary>
         /// <param name="name">The name.</param>
         /// <returns>System.String.</returns>
+        /// <exception cref="HttpRequestException">Failed to create model.</exception>
         private string CreateModel(string name)
         {
             this.log.Information("[Recommendations] Creating a new model {0}...", name);
+
             ModelInfo modelInfo = Recommender.CreateModel(name, this.catalogDisplayName);
+
             this.log.Information("[Recommendations] Model '{0}' created with ID: {1}", name, modelInfo.Id);
 
             return modelInfo.Id;
@@ -181,6 +184,9 @@ namespace EPi.Libraries.Recommendations.CatalogExportJob
         /// <summary>
         /// Initializes the settings.
         /// </summary>
+        /// <exception cref="HttpRequestException">Failed to get or create model.</exception>
+        /// <exception cref="ArgumentNullException">No model found.</exception>
+        /// <exception cref="ArgumentException">No model found.</exception>
         private void InitSettings()
         {
             this.modelName = RecommendationSettingsRepository.GetModelName();
@@ -194,7 +200,21 @@ namespace EPi.Libraries.Recommendations.CatalogExportJob
 
             if (string.IsNullOrEmpty(settings.ModelId))
             {
-                this.modelId = this.CreateModel(this.modelName);
+                try
+                {
+                    this.modelId = this.CreateModel(this.modelName);
+                }
+                catch (HttpRequestException)
+                {
+                    // In case the settings are not correct, an error will be thrown as the model alreasy exists. In that case, find the model.
+                    ModelInfo modelInfo = Recommender.FindModel(this.modelName);
+
+                    if (modelInfo != null)
+                    {
+                        this.modelId = modelInfo.Id;
+                        settings.ActiveBuildId = modelInfo.ActiveBuildId;
+                    }
+                }
                 settings.ModelId = this.modelId;
                 settings.ModelName = this.modelName;
                 RecommendationSettingsRepository.Save(settings);

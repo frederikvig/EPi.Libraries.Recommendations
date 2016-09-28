@@ -35,6 +35,8 @@ namespace EPi.Libraries.Recommendations.Core.Infrastructure
     using Mediachase.Commerce.Orders;
     using Mediachase.Commerce.Security;
 
+    using Newtonsoft.Json;
+
     /// <summary>
     /// Class Helpers.
     /// </summary>
@@ -240,21 +242,24 @@ namespace EPi.Libraries.Recommendations.Core.Infrastructure
         }
 
         /// <summary>
-        /// Extract error message from the httpResponse, (reason phrase + body)
+        /// Extract error info
         /// </summary>
-        /// <param name="response">The response.</param>
         /// <returns>System.String.</returns>
-        public static string ExtractErrorInfo(this HttpResponseMessage response)
+        public static ErrorInfo ExtractErrorInfo(this HttpResponseMessage response)
         {
+            ErrorInfo errorInfo = null;
+
             string detailedReason = null;
             if (response.Content != null)
             {
                 detailedReason = response.Content.ReadAsStringAsync().Result;
             }
 
-            string errorMsg = detailedReason == null ? response.ReasonPhrase : response.ReasonPhrase + "->" + detailedReason;
-            return errorMsg;
+            errorInfo = detailedReason != null ?
+                JsonConvert.DeserializeObject<ErrorInfo>(detailedReason) :
+                new ErrorInfo {Error = new Error {Code = string.Empty, InnerError = null, Message = response.ReasonPhrase } };
 
+            return errorInfo;
         }
 
         /// <summary>

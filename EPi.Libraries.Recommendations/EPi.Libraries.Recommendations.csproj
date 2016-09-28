@@ -281,7 +281,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\DataContracts\Error.cs" />
     <Compile Include="Core\DataContracts\Event.cs" />
+    <Compile Include="Core\DataContracts\Innererror.cs" />
     <Compile Include="Core\DataContracts\UsageEvent.cs" />
     <Compile Include="Core\DataContracts\BuildInfo.cs" />
     <Compile Include="Core\DataContracts\BuildInfoList.cs" />
@@ -311,6 +313,7 @@
     <Compile Include="Core\DataContracts\UpdateActiveBuildInfo.cs" />
     <Compile Include="Core\DataContracts\UsageImportStats.cs" />
     <Compile Include="Core\Infrastructure\Helpers.cs" />
+    <Compile Include="Core\DataContracts\ErrorInfo.cs" />
     <Compile Include="IRecommendationService.cs" />
     <Compile Include="Core\DataContracts\Blocklist.cs" />
     <Compile Include="Core\DataContracts\BusinessRule.cs" />

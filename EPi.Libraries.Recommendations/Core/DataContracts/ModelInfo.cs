@@ -49,5 +49,13 @@ namespace EPi.Libraries.Recommendations.Core.DataContracts
         [DataMember]
         [JsonProperty("name")]
         public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets the display name of the catalog.
+        /// </summary>
+        /// <value>The display name of the catalog.</value>
+        [DataMember]
+        [JsonProperty("catalogDisplayName")]
+        public string CatalogDisplayName { get; set; }
     }
 }

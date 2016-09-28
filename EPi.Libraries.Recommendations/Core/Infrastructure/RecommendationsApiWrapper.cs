@@ -101,6 +101,7 @@
 
             if (!response.IsSuccessStatusCode)
             {
+
                 throw new HttpRequestException(string.Format("Error {0}: Failed to create model {1}, \n reason {2}",
                     response.StatusCode, modelName, response.ExtractErrorInfo()));
             }
@@ -110,6 +111,54 @@
             this.ActiveModel = modelName;
 
             return modelInfo;
+        }
+
+        /// <summary>
+        /// Creates a new model.
+        /// </summary>
+        /// <param name="modelName">Name for the model</param>
+        /// <param name="description">Description for the model</param>
+        /// <returns>Model Information.</returns>
+        /// <exception cref="HttpRequestException">Failed to get or create model.</exception>
+        public ModelInfo GetOrCreateModel(string modelName, string description = null)
+        {
+            ModelInfo modelInfo = this.FindModel(modelName);
+
+            return modelInfo ?? this.CreateModel(modelName, description);
+        }
+
+        /// <summary>
+        /// Gets all models.
+        /// </summary>
+        /// <returns>ModelList.</returns>
+        /// <exception cref="HttpRequestException">Failed to get all models.</exception>
+        public ModelInfoList GetAllModels()
+        {
+            string uri = this.baseUri + "/models";
+            HttpResponseMessage response = this.httpClient.GetAsync(uri).Result;
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException(string.Format("Error {0}: Failed to get all models, \n reason {1}", response.StatusCode, response.ExtractErrorInfo()));
+            }
+
+            string jsonString = response.ExtractReponse();
+            ModelInfoList modelList = JsonConvert.DeserializeObject<ModelInfoList>(jsonString);
+
+            return modelList;
+        }
+
+        /// <summary>
+        /// Find a model by name.
+        /// </summary>
+        /// <param name="modelName">Name of the model.</param>
+        /// <returns>ModelInfo.</returns>
+        /// <exception cref="ArgumentNullException">No model found.</exception>
+        /// <exception cref="ArgumentException">No model found.</exception>
+        /// <exception cref="HttpRequestException">Failed to get all models.</exception>
+        public ModelInfo FindModel(string modelName)
+        {
+            ModelInfoList modelInfoList = this.GetAllModels();
+            return modelInfoList.Models.SingleOrDefault(m => m.Name.Equals(modelName, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
