@@ -202,27 +202,26 @@ namespace EPi.Libraries.Recommendations.CatalogExportJob
             {
                 try
                 {
-                    this.modelId = this.CreateModel(this.modelName);
+                    settings.ModelId = this.CreateModel(this.modelName);
                 }
                 catch (HttpRequestException)
                 {
-                    // In case the settings are not correct, an error will be thrown as the model alreasy exists. In that case, find the model.
+                    // In case the settings are not correct, an error will be thrown as the model already exists. In that case, find the model, and update the settings
                     ModelInfo modelInfo = Recommender.FindModel(this.modelName);
 
                     if (modelInfo != null)
                     {
-                        this.modelId = modelInfo.Id;
+                        settings.ModelId = modelInfo.Id;
                         settings.ActiveBuildId = modelInfo.ActiveBuildId;
                     }
                 }
-                settings.ModelId = this.modelId;
+
                 settings.ModelName = this.modelName;
+
                 RecommendationSettingsRepository.Save(settings);
             }
-            else
-            {
-                this.modelId = settings.ModelId;
-            }
+
+            this.modelId = settings.ModelId;
         }
 
         /// <summary>
