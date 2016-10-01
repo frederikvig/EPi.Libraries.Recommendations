@@ -198,7 +198,18 @@ namespace EPi.Libraries.Recommendations
         /// <returns>List&lt;EntryContentBase&gt;.</returns>
         public virtual List<EntryContentBase> GetItemRecommendations(string itemIds)
         {
-            return this.GetItemRecommendations(itemIds, 6);
+            return this.GetItemRecommendations<EntryContentBase>(itemIds, 6);
+        }
+
+        /// <summary>
+        /// Gets the item to item recommendations. Returns 6.
+        /// </summary>
+        /// <typeparam name="T">The type of entry to get.</typeparam>
+        /// <param name="itemIds">Comma-separated list of the items to recommend for. Max length: 1024</param>
+        /// <returns>List&lt;EntryContentBase&gt;.</returns>
+        public virtual List<T> GetItemRecommendations<T>(string itemIds) where T : EntryContentBase
+        {
+            return this.GetItemRecommendations<T>(itemIds, 6);
         }
 
         /// <summary>
@@ -209,7 +220,19 @@ namespace EPi.Libraries.Recommendations
         /// <returns>List&lt;EntryContentBase&gt;.</returns>
         public virtual List<EntryContentBase> GetItemRecommendations(string itemIds, int numberOfResults)
         {
-            List<EntryContentBase> recommendations = new List<EntryContentBase>();
+            return this.GetItemRecommendations<EntryContentBase>(itemIds, numberOfResults);
+        }
+
+        /// <summary>
+        /// Gets the item to item recommendations.
+        /// </summary>
+        /// <typeparam name="T">The type of entry to get.</typeparam>
+        /// <param name="itemIds">Comma-separated list of the items to recommend for. Max length: 1024</param>
+        /// <param name="numberOfResults">The number of results.</param>
+        /// <returns>List&lt;EntryContentBase&gt;.</returns>
+        public virtual List<T> GetItemRecommendations<T>(string itemIds, int numberOfResults) where T : EntryContentBase
+        {
+            List<T> recommendations = new List<T>();
             RecommendationSettings settings = this.RecommendationSettingsRepository.GetDefaultSettings();
 
             this.Log.Information("[Recommendations] Getting item to item recommendations for ids: {0}", itemIds);
@@ -222,7 +245,7 @@ namespace EPi.Libraries.Recommendations
                 {
                     foreach (RecommendedItemSetInfo recoSet in itemSets.RecommendedItemSetInfo.OrderByDescending( s => s.Rating))
                     {
-                        recommendations.AddRange(recoSet.Items.Select(item => this.GetEntryByCode(item.Id)).Where(entry => entry != null));
+                        recommendations.AddRange(recoSet.Items.Select(item => this.GetEntryByCode<T>(item.Id)).Where(entry => entry != null));
                     }
                 }
                 else
@@ -252,13 +275,33 @@ namespace EPi.Libraries.Recommendations
         }
 
         /// <summary>
+        /// Gets the user recommendations. Returns 6
+        /// </summary>
+        /// <returns>List&lt;EntryContentBase&gt;.</returns>
+        public virtual List<T> GetUserRecommendations<T>() where T : EntryContentBase
+        {
+            return this.GetUserRecommendations<T>(6);
+        }
+
+        /// <summary>
         /// Gets the user recommendations.
         /// </summary>
         /// <param name="numberOfResults">Number of recommended items to return.</param>
         /// <returns>List&lt;EntryContentBase&gt;.</returns>
         public virtual List<EntryContentBase> GetUserRecommendations(int numberOfResults)
         {
-            List<EntryContentBase> recommendations = new List<EntryContentBase>();
+            return this.GetUserRecommendations<EntryContentBase>(numberOfResults);
+        }
+
+        /// <summary>
+        /// Gets the user recommendations.
+        /// </summary>
+        /// <typeparam name="T">The type of entry to get.</typeparam>
+        /// <param name="numberOfResults">Number of recommended items to return.</param>
+        /// <returns>List&lt;EntryContentBase&gt;.</returns>
+        public virtual List<T> GetUserRecommendations<T>(int numberOfResults) where T : EntryContentBase
+        {
+            List<T> recommendations = new List<T>();
 
             RecommendationSettings settings = this.RecommendationSettingsRepository.GetDefaultSettings();
             string userId = PrincipalInfo.CurrentPrincipal.GetContactId().ToString();
@@ -273,7 +316,7 @@ namespace EPi.Libraries.Recommendations
                 {
                     foreach (RecommendedItemSetInfo recoSet in itemSets.RecommendedItemSetInfo.OrderByDescending(s => s.Rating))
                     {
-                        recommendations.AddRange(recoSet.Items.Select(item => this.GetEntryByCode(item.Id)).Where(entry => entry != null));
+                        recommendations.AddRange(recoSet.Items.Select(item => this.GetEntryByCode<T>(item.Id)).Where(entry => entry != null));
                     }
                 }
                 else
@@ -300,11 +343,22 @@ namespace EPi.Libraries.Recommendations
         /// <returns>EntryContentBase.</returns>
         protected EntryContentBase GetEntryByCode(string code)
         {
+            return this.GetEntryByCode<EntryContentBase>(code);
+        }
+
+        /// <summary>
+        /// Gets the entry by code.
+        /// </summary>
+        /// <typeparam name="T">The type of entry to get.</typeparam>
+        /// <param name="code">The code.</param>
+        /// <returns>EntryContentBase.</returns>
+        protected T GetEntryByCode<T>(string code) where T : EntryContentBase
+        {
             // Get the ContentReference for the recommendation
             ContentReference contentReference = this.ReferenceConverter.GetContentLink(code);
 
             // Try to get the entry
-            EntryContentBase entry;
+            T entry;
             return this.ContentLoader.TryGet(contentReference, out entry) ? entry : null;
         }
 

@@ -113,10 +113,14 @@ You can override some more methods if you need to, this is the full list:
 ```csharp
         List<CatalogItem> GetCatalogItems(DateTime since);
         List<EntryContentBase> GetItemRecommendations(string itemIds);
+        List<T> GetItemRecommendations<T>(string itemIds);
         List<EntryContentBase> GetItemRecommendations(string itemIds, int numberOfResults);
+        List<T> GetItemRecommendations<T>(string itemIds, int numberOfResults);
         List<UsageItem> GetUsageItems(DateTime since);
         List<EntryContentBase> GetUserRecommendations();
+        List<T> GetUserRecommendations<T>();
         List<EntryContentBase> GetUserRecommendations(int numberOfResults);
+        List<T> GetUserRecommendations<T>(int numberOfResults);
         void SendUsageEvent(int quantity, string code, decimal unitPrice, EventType eventType);
         void SendUsageEvent(decimal quantity, string code, decimal unitPrice, EventType eventType);
 ```
