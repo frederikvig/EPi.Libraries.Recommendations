@@ -30,7 +30,9 @@ namespace EPi.Libraries.Recommendations.Core.Infrastructure
     using EPi.Libraries.Recommendations.Core.Enums;
     using EPi.Libraries.Recommendations.Core.Models;
 
+    using EPiServer.Logging;
     using EPiServer.Security;
+    using EPiServer.ServiceLocation;
 
     using Mediachase.Commerce.Orders;
     using Mediachase.Commerce.Security;
@@ -43,6 +45,35 @@ namespace EPi.Libraries.Recommendations.Core.Infrastructure
     /// <author>Jeroen Stemerdink</author>
     public static class Helpers
     {
+        /// <summary>
+        /// The log
+        /// </summary>
+        private static readonly ILogger Log = LogManager.GetLogger();
+
+        /// <summary>
+        /// Gets the recommendation settings repository.
+        /// </summary>
+        /// <value>The recommendation settings repository.</value>
+        private static RecommendationSettingsRepository RecommendationSettingsRepository
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<RecommendationSettingsRepository>();
+            }
+        }
+
+        /// <summary>
+        /// Gets the recommender.
+        /// </summary>
+        /// <value>The recommender.</value>
+        private static RecommendationsApiWrapper Recommender
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<RecommendationsApiWrapper>();
+            }
+        }
+
         /// <summary>
         /// Creates the content of the catalog.
         /// </summary>
@@ -111,15 +142,15 @@ namespace EPi.Libraries.Recommendations.Core.Infrastructure
         /// <param name="userId">The user identifier.</param>
         /// <param name="eventType">Type of the event.</param>
         /// <returns>System.String.</returns>
-        public static string CreateUsageContent(this LineItem lineItem,string userId, EventType eventType)
+        public static string CreateUsageContent(this LineItem lineItem, string userId, EventType eventType)
         {
             UsageItem usageItem = new UsageItem
-            {
-                EventDate = DateTime.Now,
-                ItemID = lineItem.Code,
-                UserID = userId,
-                EventType = eventType
-            };
+                                      {
+                                          EventDate = DateTime.Now,
+                                          ItemID = lineItem.Code,
+                                          UserID = userId,
+                                          EventType = eventType
+                                      };
 
             return usageItem.ToString();
         }
@@ -139,7 +170,12 @@ namespace EPi.Libraries.Recommendations.Core.Infrastructure
             EventType eventType)
         {
 
-            return CreateUsageEventContent(PrincipalInfo.CurrentPrincipal.GetContactId().ToString(), quantity, code, unitPrice, eventType);
+            return CreateUsageEventContent(
+                PrincipalInfo.CurrentPrincipal.GetContactId().ToString(),
+                quantity,
+                code,
+                unitPrice,
+                eventType);
         }
 
         /// <summary>
@@ -158,7 +194,12 @@ namespace EPi.Libraries.Recommendations.Core.Infrastructure
         {
             try
             {
-                return CreateUsageEventContent(PrincipalInfo.CurrentPrincipal.GetContactId().ToString(), decimal.ToInt32(quantity), code, unitPrice, eventType);
+                return CreateUsageEventContent(
+                    PrincipalInfo.CurrentPrincipal.GetContactId().ToString(),
+                    decimal.ToInt32(quantity),
+                    code,
+                    unitPrice,
+                    eventType);
             }
             catch (OverflowException)
             {
@@ -186,10 +227,10 @@ namespace EPi.Libraries.Recommendations.Core.Infrastructure
             string forWebservice = DateTime.Now.ToString(DateTimeFormat, CultureInfo.InvariantCulture);
 
             UsageEvent usageEvent = new UsageEvent
-            {
-                BuildId = -1,
-                UserId = userId,
-                Events =
+                                        {
+                                            BuildId = -1,
+                                            UserId = userId,
+                                            Events =
                                                 new[]
                                                     {
                                                         new Event
@@ -201,7 +242,7 @@ namespace EPi.Libraries.Recommendations.Core.Infrastructure
                                                                 UnitPrice = decimal.ToSingle(unitPrice)
                                                             }
                                                     }
-            };
+                                        };
 
             return usageEvent;
         }
@@ -255,9 +296,18 @@ namespace EPi.Libraries.Recommendations.Core.Infrastructure
                 detailedReason = response.Content.ReadAsStringAsync().Result;
             }
 
-            errorInfo = detailedReason != null ?
-                JsonConvert.DeserializeObject<ErrorInfo>(detailedReason) :
-                new ErrorInfo {Error = new Error {Code = string.Empty, InnerError = null, Message = response.ReasonPhrase } };
+            errorInfo = detailedReason != null
+                            ? JsonConvert.DeserializeObject<ErrorInfo>(detailedReason)
+                            : new ErrorInfo
+                                  {
+                                      Error =
+                                          new Error
+                                              {
+                                                  Code = string.Empty,
+                                                  InnerError = null,
+                                                  Message = response.ReasonPhrase
+                                              }
+                                  };
 
             return errorInfo;
         }
@@ -281,10 +331,64 @@ namespace EPi.Libraries.Recommendations.Core.Infrastructure
                 detailedReason = response.Content.ReadAsStringAsync().Result;
             }
 
-            string errorMsg = detailedReason == null ? response.ReasonPhrase : response.ReasonPhrase + "->" + detailedReason;
+            string errorMsg = detailedReason == null
+                                  ? response.ReasonPhrase
+                                  : response.ReasonPhrase + "->" + detailedReason;
 
-            string error = string.Format("Status code: {0}\nDetail information: {1}", (int)response.StatusCode, errorMsg);
+            string error = string.Format(
+                "Status code: {0}\nDetail information: {1}",
+                (int)response.StatusCode,
+                errorMsg);
             throw new HttpRequestException("Response: " + error);
+        }
+
+        /// <summary>
+        /// Gets the recommendation settings.
+        /// </summary>
+        /// <returns>RecommendationSettings.</returns>
+        /// <exception cref="HttpRequestException">Failed to get all models.</exception>
+        /// <exception cref="ArgumentNullException">No model found.</exception>
+        /// <exception cref="ArgumentException">No model found.</exception>
+        public static RecommendationSettings GetRecommendationSettings()
+        {
+            string modelName = RecommendationSettingsRepository.GetModelName();
+            string catalogDisplayName = RecommendationSettingsRepository.GetCatalogDisplayName();
+
+            RecommendationSettings settings = RecommendationSettingsRepository.GetSettingsByName(modelName);
+
+            if (!string.IsNullOrEmpty(settings.ModelId))
+            {
+                return settings;
+            }
+
+            try
+            {
+                Log.Information("[Recommendations] Creating a new model {0}...", modelName);
+
+                ModelInfo modelInfo = Recommender.CreateModel(modelName, catalogDisplayName);
+
+                Log.Information("[Recommendations] Model '{0}' created with ID: {1}", modelName, modelInfo.Id);
+
+                settings.ModelId = modelInfo.Id;
+            }
+            catch (HttpRequestException)
+            {
+                // In case the settings are not correct, an error will be thrown as the model already exists. In that case, find the model, and update the settings
+                ModelInfo modelInfo = Recommender.FindModel(modelName);
+
+                if (modelInfo != null)
+                {
+                    settings.ModelId = modelInfo.Id;
+                    settings.ActiveBuildId = modelInfo.ActiveBuildId;
+                }
+            }
+
+            settings.ModelName = modelName;
+            settings.CatalogDisplayName = catalogDisplayName;
+
+            RecommendationSettingsRepository.Save(settings);
+
+            return settings;
         }
     }
 }

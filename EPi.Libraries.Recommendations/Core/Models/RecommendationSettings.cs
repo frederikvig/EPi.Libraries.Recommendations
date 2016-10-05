@@ -33,5 +33,11 @@
         /// </summary>
         /// <value>The name of the model.</value>
         public string ModelName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the display name of the catalog.
+        /// </summary>
+        /// <value>The display name of the catalog.</value>
+        public string CatalogDisplayName { get; set; }
     }
 }

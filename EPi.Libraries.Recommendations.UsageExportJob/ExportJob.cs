@@ -55,11 +55,6 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         private long buildId;
 
         /// <summary>
-        /// The catalog display name
-        /// </summary>
-        private string catalogDisplayName;
-
-        /// <summary>
         /// The catalog items
         /// </summary>
         private List<CatalogItem> catalogItems;
@@ -73,11 +68,6 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         /// The model identifier
         /// </summary>
         private string modelId;
-
-        /// <summary>
-        /// The model name
-        /// </summary>
-        private string modelName;
 
         /// <summary>
         /// Stop was signaled
@@ -101,6 +91,8 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         /// Gets the recommendation service.
         /// </summary>
         /// <value>The recommendation service.</value>
+        /// <exception cref="ActivationException">if there is are errors resolving
+        ///             the service instance.</exception>
         private static IRecommendationService RecommendationService
         {
             get
@@ -113,6 +105,8 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         /// Gets the recommendation settings repository.
         /// </summary>
         /// <value>The recommendation settings repository.</value>
+        /// <exception cref="ActivationException">if there is are errors resolving
+        ///             the service instance.</exception>
         private static RecommendationSettingsRepository RecommendationSettingsRepository
         {
             get
@@ -125,6 +119,8 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         /// Gets the recommender.
         /// </summary>
         /// <value>The recommender.</value>
+        /// <exception cref="ActivationException">if there is are errors resolving
+        ///             the service instance.</exception>
         private static RecommendationsApiWrapper Recommender
         {
             get
@@ -137,6 +133,8 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         /// Gets the scheduled job repository.
         /// </summary>
         /// <value>The scheduled job repository.</value>
+        /// <exception cref="ActivationException">if there is are errors resolving
+        ///             the service instance.</exception>
         private static IScheduledJobRepository ScheduledJobRepository
         {
             get
@@ -153,7 +151,26 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         {
             this.OnStatusChanged(string.Format("Starting execution of {0}", this.GetType()));
 
-            this.InitSettings();
+            try
+            {
+                this.InitSettings();
+            }
+            catch (HttpRequestException httpRequestException)
+            {
+                return httpRequestException.Message;
+            }
+            catch (ArgumentNullException argumentNullException)
+            {
+                return argumentNullException.Message;
+            }
+            catch (ArgumentException argumentException)
+            {
+                return argumentException.Message;
+            }
+            catch (ActivationException activationException)
+            {
+                return activationException.Message;
+            }
 
             string uploadUsageMessage;
             string buildMessage;
@@ -189,6 +206,10 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
             {
                 buildMessage = httpRequestException.Message;
             }
+            catch (ActivationException activationException)
+            {
+                buildMessage = activationException.Message;
+            }
 
             this.catalogItems.Clear();
 
@@ -211,57 +232,67 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         private bool CreateFtbBuild(out string message)
         {
             // Trigger a FTB build.
-            string operationLocationHeader;
             this.log.Information(
                 "[Recommendations] Triggering FTB build for model '{0}'. \nThis will take a few minutes...",
                 this.modelId);
 
-            this.buildId = Recommender.CreateFbtBuild(
-                this.modelId,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    "Frequenty-Bought-Together Build {0}",
-                    DateTime.UtcNow.ToString("yyyyMMddHHmmss")),
-                false,
-                out operationLocationHeader);
-
-            // Monitor the build and wait for completion.
-            this.log.Information("[Recommendations] Monitoring FTB build {0}", this.buildId);
-
-            OperationInfo<BuildInfo> buildInfo =
-                Recommender.WaitForOperationCompletion<BuildInfo>(
-                    RecommendationsApiWrapper.GetOperationId(operationLocationHeader));
-
-            message = string.Format(
-                CultureInfo.InvariantCulture,
-                "[Recommendations] Build {0} ended with status {1}.\n",
-                this.buildId,
-                buildInfo.Status);
-
-            this.log.Information(message);
-
-            if (string.Compare(buildInfo.Status, "Succeeded", StringComparison.OrdinalIgnoreCase) != 0)
+            try
             {
-                this.log.Information("[Recommendations] FBT build {0} did not end successfully.", this.buildId);
+                string operationLocationHeader;
+                this.buildId = Recommender.CreateFbtBuild(
+                    this.modelId,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        "Frequenty-Bought-Together Build {0}",
+                        DateTime.UtcNow.ToString("yyyyMMddHHmmss")),
+                    false,
+                    out operationLocationHeader);
+
+                // Monitor the build and wait for completion.
+                this.log.Information("[Recommendations] Monitoring FTB build {0}", this.buildId);
+
+                OperationInfo<BuildInfo> buildInfo =
+                    Recommender.WaitForOperationCompletion<BuildInfo>(
+                        RecommendationsApiWrapper.GetOperationId(operationLocationHeader));
+
+                message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[Recommendations] Build {0} ended with status {1}.\n",
+                    this.buildId,
+                    buildInfo.Status);
+
+                this.log.Information(message);
+
+                if (string.Compare(buildInfo.Status, "Succeeded", StringComparison.OrdinalIgnoreCase) != 0)
+                {
+                    this.log.Information("[Recommendations] FBT build {0} did not end successfully.", this.buildId);
+                    return false;
+                }
+            }
+            catch (ActivationException activationException)
+            {
+                message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[Recommendations] Error creating FTB build: {0}",
+                    activationException.Message);
+
+                this.log.Error(message, activationException);
+
+                return false;
+            }
+            catch (HttpRequestException httpRequestException)
+            {
+                message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[Recommendations] Error creating FTB build: {0}",
+                    httpRequestException.Message);
+
+                this.log.Error(message, httpRequestException);
+
                 return false;
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Creates a model.
-        /// Returns the model ID for the model.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <returns>System.String.</returns>
-        private string CreateModel(string name)
-        {
-            this.log.Information("[Recommendations] Creating a new model {0}...", name);
-            ModelInfo modelInfo = Recommender.CreateModel(name, this.catalogDisplayName);
-            this.log.Information("[Recommendations] Model '{0}' created with ID: {1}", name, modelInfo.Id);
-
-            return modelInfo.Id;
         }
 
         /// <summary>
@@ -272,7 +303,6 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         private bool CreateRecommendationsBuild(out string message)
         {
             // Trigger a recommendation build.
-            string operationLocationHeader;
             this.log.Information(
                 "[Recommendations] Triggering recommendation build for model '{0}'. \nThis will take a few minutes...",
                 this.modelId);
@@ -281,38 +311,64 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
             bool useFeaturesInModel = !string.IsNullOrWhiteSpace(featureList);
             bool allowColdItemPlacement = !string.IsNullOrWhiteSpace(featureList);
 
-            this.buildId = Recommender.CreateRecommendationsBuild(
-                this.modelId,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    "[Recommendations] Build {0}",
-                    DateTime.UtcNow.ToString("yyyyMMddHHmmss")),
-                false,
-                useFeaturesInModel,
-                allowColdItemPlacement,
-                featureList,
-                out operationLocationHeader);
-
-            // Monitor the build and wait for completion.
-            this.log.Information("[Recommendations] Monitoring recommendation build {0}", this.buildId);
-
-            OperationInfo<BuildInfo> buildInfo =
-                Recommender.WaitForOperationCompletion<BuildInfo>(
-                    RecommendationsApiWrapper.GetOperationId(operationLocationHeader));
-
-            message = string.Format(
-                CultureInfo.InvariantCulture,
-                "[Recommendations] Build {0} ended with status {1}.\n",
-                this.buildId,
-                buildInfo.Status);
-
-            this.log.Information(message);
-
-            if (string.Compare(buildInfo.Status, "Succeeded", StringComparison.OrdinalIgnoreCase) != 0)
+            try
             {
-                this.log.Information(
-                    "[Recommendations] Recommendation build {0} did not end successfully.",
-                    this.buildId);
+                string operationLocationHeader;
+                this.buildId = Recommender.CreateRecommendationsBuild(
+                    this.modelId,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        "[Recommendations] Build {0}",
+                        DateTime.UtcNow.ToString("yyyyMMddHHmmss")),
+                    false,
+                    useFeaturesInModel,
+                    allowColdItemPlacement,
+                    featureList,
+                    out operationLocationHeader);
+
+                // Monitor the build and wait for completion.
+                this.log.Information("[Recommendations] Monitoring recommendation build {0}", this.buildId);
+
+                OperationInfo<BuildInfo> buildInfo =
+                    Recommender.WaitForOperationCompletion<BuildInfo>(
+                        RecommendationsApiWrapper.GetOperationId(operationLocationHeader));
+
+                message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[Recommendations] Build {0} ended with status {1}.\n",
+                    this.buildId,
+                    buildInfo.Status);
+
+                this.log.Information(message);
+
+                if (string.Compare(buildInfo.Status, "Succeeded", StringComparison.OrdinalIgnoreCase) != 0)
+                {
+                    this.log.Information(
+                        "[Recommendations] Recommendation build {0} did not end successfully.",
+                        this.buildId);
+                    return false;
+                }
+            }
+            catch (ActivationException activationException)
+            {
+                message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[Recommendations] Error creating build: {0}",
+                    activationException.Message);
+
+                this.log.Error(message, activationException);
+
+                return false;
+            }
+            catch (HttpRequestException httpRequestException)
+            {
+                message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[Recommendations] Error creating build: {0}",
+                    httpRequestException.Message);
+
+                this.log.Error(message, httpRequestException);
+
                 return false;
             }
 
@@ -322,32 +378,21 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         /// <summary>
         /// Initializes the settings.
         /// </summary>
+        /// <exception cref="HttpRequestException">Failed to get all models.</exception>
+        /// <exception cref="ArgumentNullException">No model found.</exception>
+        /// <exception cref="ArgumentException">No model found.</exception>
+        /// <exception cref="ActivationException">if there is are errors resolving
+        ///             the service instance.</exception>
         private void InitSettings()
         {
-            this.modelName = RecommendationSettingsRepository.GetModelName();
-
-            this.catalogDisplayName = RecommendationSettingsRepository.GetCatalogDisplayName();
-
             this.usageDisplayName = RecommendationSettingsRepository.GetUsageDisplayName();
 
             ScheduledJob thisJob = ScheduledJobRepository.Get(this.ScheduledJobId);
             this.lastExecution = thisJob.LastExecution;
 
-            RecommendationSettings settings = RecommendationSettingsRepository.GetSettingsByName(this.modelName);
+            RecommendationSettings settings = Helpers.GetRecommendationSettings();
 
-            this.buildId = settings.ActiveBuildId;
-
-            if (string.IsNullOrEmpty(settings.ModelId))
-            {
-                this.modelId = this.CreateModel(this.modelName);
-                settings.ModelId = this.modelId;
-                settings.ModelName = this.modelName;
-                RecommendationSettingsRepository.Save(settings);
-            }
-            else
-            {
-                this.modelId = settings.ModelId;
-            }
+            this.modelId = settings.ModelId;
 
             this.catalogItems = RecommendationService.GetCatalogItems(DateTime.MinValue);
         }
@@ -361,7 +406,23 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
         {
             this.log.Information("[Recommendations] Importing usage files...");
 
-            List<UsageItem> usageItems = RecommendationService.GetUsageItems(this.lastExecution);
+            List<UsageItem> usageItems;
+
+            try
+            {
+                usageItems = RecommendationService.GetUsageItems(this.lastExecution);
+            }
+            catch (ActivationException activationException)
+            {
+                message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[Recommendations] Error sending usage stats: {0}",
+                    activationException.Message);
+
+                this.log.Error(message, activationException);
+
+                return false;
+            }
 
             if (usageItems.Count == 0)
             {
@@ -392,8 +453,9 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
                     "[Recommendations] Error sending usage stats: {0}",
                     httpRequestException.Message);
 
-                this.log.Error("[Recommendations] Error sending usage stats", httpRequestException);
+                this.log.Error(message, httpRequestException);
                 this.log.Information("[Recommendations] Usage stats content trying to send:\\r\n{0}", usageContent);
+
                 return false;
             }
             catch (ArgumentNullException argumentNullException)
@@ -403,7 +465,8 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
                     "[Recommendations] Error sending usage stats: {0}",
                     argumentNullException.Message);
 
-                this.log.Error("[Recommendations] Error sending usage stats", argumentNullException);
+                this.log.Error(message, argumentNullException);
+
                 return false;
             }
             catch (EncoderFallbackException encoderFallbackException)
@@ -412,7 +475,20 @@ namespace EPi.Libraries.Recommendations.UsageExportJob
                     CultureInfo.InvariantCulture,
                     "[Recommendations] Error sending usage stats: {0}",
                     encoderFallbackException.Message);
-                this.log.Error("[Recommendations] Error sending usage stats", encoderFallbackException);
+
+                this.log.Error(message, encoderFallbackException);
+
+                return false;
+            }
+            catch (ActivationException activationException)
+            {
+                message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[Recommendations] Error sending usage stats: {0}",
+                    activationException.Message);
+
+                this.log.Error(message, activationException);
+
                 return false;
             }
 

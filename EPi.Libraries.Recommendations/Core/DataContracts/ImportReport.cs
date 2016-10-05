@@ -4,7 +4,7 @@ namespace EPi.Libraries.Recommendations.Core.DataContracts
     ///     Utility class holding the result of import operation
     /// </summary>
     /// <author>Jeroen Stemerdink</author>
-    internal class ImportReport
+    public class ImportReport
     {
         /// <summary>
         ///     Gets or sets the error count.
@@ -31,9 +31,9 @@ namespace EPi.Libraries.Recommendations.Core.DataContracts
         public override string ToString()
         {
             return string.Format(
-                "successfully imported {0}/{1} lines for {2}", 
-                this.LineCount - this.ErrorCount, 
-                this.LineCount, 
+                "successfully imported {0}/{1} lines for {2}",
+                this.LineCount - this.ErrorCount,
+                this.LineCount,
                 this.Info);
         }
     }
