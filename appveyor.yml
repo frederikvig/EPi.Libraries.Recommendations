@@ -28,6 +28,7 @@ after_build:
 - 7z a EPi.Libraries.Recommendations.CatalogExportJob.%GitVersion_NuGetVersion%.zip %APPVEYOR_BUILD_FOLDER%\EPi.Libraries.Recommendations.CatalogExportJob\bin\Release\EPi.Libraries.Recommendations.CatalogExportJob.dll
 - cmd: appveyor PushArtifact "EPi.Libraries.Recommendations.CatalogExportJob.%GitVersion_NuGetVersion%.zip"
 - 7z a EPi.Libraries.Recommendations.UsageExportJob.%GitVersion_NuGetVersion%.zip %APPVEYOR_BUILD_FOLDER%\EPi.Libraries.Recommendations.UsageExportJob\bin\Release\EPi.Libraries.Recommendations.UsageExportJob.dll
+- cmd: appveyor PushArtifact "EPi.Libraries.Recommendations.UsageExportJob.%GitVersion_NuGetVersion%.zip"
 before_package:
 - ps: >-
     Write-Host -NoNewline "Installing NuGet 3.3.0..."
